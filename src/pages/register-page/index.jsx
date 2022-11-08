@@ -1,25 +1,26 @@
+/* eslint-disable import/no-named-as-default */
+/* eslint-disable import/no-named-as-default-member */
 /* eslint-disable no-underscore-dangle */
 import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   TextField, Box, Typography, Button,
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
+import { createUser, fetchToken } from '../../redux/reducers/user';
 import MainContainer from '../../components/main-container';
 
 const initialValues = {
-  email: '',
-  emailConfirmation: '',
+  username: '',
   password: '',
   passwordConfirmation: '',
-  firstName: '',
-  surname: '',
 };
 
 const validationSchema = yup.object({
-  email: yup.string()
+  username: yup.string()
     .required('Required')
-    .email('Incorrect email format'),
+    .min(5, 'At least 5 characters'),
   password: yup.string()
     .required('Required')
     .min(8, 'At least 8 characters')
@@ -30,20 +31,23 @@ const validationSchema = yup.object({
   passwordConfirmation: yup.string()
     .required('Required')
     .oneOf([yup.ref('password')], 'Passwords do not match'),
-  firstName: yup.string()
-    .required('Required')
-    .min(2, 'At least 2 characters')
-    .matches(/^[a-ząčęėįšųūž ]+$/i, 'Only letters and spaces'),
-  surname: yup.string()
-    .required('Required')
-    .min(2, 'At least 2 characters')
-    .matches(/^[a-ząčęėįšųūž ]+$/i, 'Only letters and spaces'),
 });
 
 const RegisterPage = () => {
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user);
+
+  React.useEffect(() => {
+    dispatch(fetchToken('createaccount'));
+  }, [dispatch]);
+
+  console.log(user.status);
+
   const onSubmit = (values) => {
     console.log('Values entered');
     console.table(values);
+    const token = user.data.createaccounttoken;
+    dispatch(createUser({ ...values, token }));
   };
 
   const {
@@ -75,28 +79,16 @@ const RegisterPage = () => {
         >
           <Typography variant="h5" mb={3}>Registration</Typography>
           <TextField
-            name="email"
-            label="Email"
-            type="email"
+            name="username"
+            label="Username"
+            type="text"
             variant="filled"
             fullWidth
-            value={values.email}
+            value={values.username}
             onChange={handleChange}
             onBlur={handleBlur}
-            error={touched.email && Boolean(errors.email)}
-            helperText={touched.email && errors.email}
-          />
-          <TextField
-            name="emailConfirmation"
-            label="Repeat email"
-            type="email"
-            variant="filled"
-            fullWidth
-            value={values.emailConfirmation}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={touched.emailConfirmation && Boolean(errors.emailConfirmation)}
-            helperText={touched.emailConfirmation && errors.emailConfirmation}
+            error={touched.username && Boolean(errors.username)}
+            helperText={touched.username && errors.username}
           />
           <TextField
             name="password"
@@ -121,30 +113,6 @@ const RegisterPage = () => {
             onBlur={handleBlur}
             error={touched.passwordConfirmation && Boolean(errors.passwordConfirmation)}
             helperText={touched.passwordConfirmation && errors.passwordConfirmation}
-          />
-          <TextField
-            name="firstName"
-            label="Name"
-            type="text"
-            variant="filled"
-            fullWidth
-            value={values.firstName}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={touched.firstName && Boolean(errors.firstName)}
-            helperText={touched.firstName && errors.firstName}
-          />
-          <TextField
-            name="surname"
-            label="Surname"
-            type="text"
-            variant="filled"
-            fullWidth
-            value={values.surname}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={touched.surname && Boolean(errors.surname)}
-            helperText={touched.surname && errors.surname}
           />
           <Button
             type="submit"
